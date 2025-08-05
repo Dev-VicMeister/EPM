@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .input-style {
+    @apply w-full px-4 py-2 rounded-md border border-[#d4af37] bg-white bg-opacity-80 placeholder-gray-600 text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#c9a74f] transition duration-300;
+  }
+
+  .gold-label {
+    @apply text-gray-700 font-medium;
+  }
+
+  .gold-card {
+    @apply bg-gradient-to-br from-[#f5e8c8] to-[#e6d7b0] bg-opacity-90 backdrop-blur-xl shadow-2xl rounded-2xl border border-[#d4af37] transition-all duration-500;
+  }
+
+  .gold-button {
+    @apply w-full bg-[#c9a74f] hover:bg-[#b9973c] text-white font-semibold py-3 rounded-xl shadow-lg transition duration-300 text-lg;
+  }
+
+  .gold-radio {
+    @apply flex items-center gap-2 text-gray-700;
+  }
+
+  @keyframes fadeIn {
+    0% {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.8s ease-out forwards;
+  }
+}
