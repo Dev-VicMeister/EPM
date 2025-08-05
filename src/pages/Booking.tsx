@@ -7,19 +7,17 @@ export default function Booking() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [mobile, setMobile] = useState('');
-  
   const [service, setService] = useState('');
   const [serviceFee, setServiceFee] = useState(0);
   const [location, setLocation] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [earlyLateFee, setEarlyLateFee] = useState(0);
-  const [travelFee, setTravelFee] = useState(0); // Placeholder
   const [total, setTotal] = useState(0);
   const [paymentType, setPaymentType] = useState('Deposit');
 
   const updateTotal = (serviceFeeValue = serviceFee, earlyLate = earlyLateFee) => {
-    const totalValue = serviceFeeValue + earlyLate + travelFee;
+    const totalValue = serviceFeeValue + earlyLate;
     setTotal(totalValue);
   };
 
@@ -43,9 +41,11 @@ export default function Booking() {
   const handleSubmit = (e: React.FormEvent) => {
   e.preventDefault();
 
-  const honeypot = (e.target as any).honeypot?.value;
+  const form = e.target as HTMLFormElement;
+  const honeypot = (form.elements.namedItem("honeypot") as HTMLInputElement)?.value;
+
   if (honeypot) {
-    console.warn('Spam bot detected');
+    console.warn("Spam bot detected");
     return;
   }
 
@@ -57,14 +57,35 @@ export default function Booking() {
     location,
     date,
     time,
-    travelFee,
     earlyLateFee,
     total,
     paymentType,
   };
 
-  emailjs.send('service_syweznm', 'template_l6gz5rl', bookingDetails, 'maEgsleopr7_f9DYu');
-  emailjs.send('service_syweznm', 'template_htlywr6', bookingDetails, 'maEgsleopr7_f9DYu');
+  emailjs.send(
+  import.meta.env.VITE_EMAILJS_SERVICE_ID,
+  import.meta.env.VITE_EMAILJS_TEMPLATE_CUSTOMER,
+  bookingDetails,
+  import.meta.env.VITE_EMAILJS_PUBLIC_KEY
+);
+
+emailjs.send(
+  import.meta.env.VITE_EMAILJS_SERVICE_ID,
+  import.meta.env.VITE_EMAILJS_TEMPLATE_EPM,
+  bookingDetails,
+  import.meta.env.VITE_EMAILJS_PUBLIC_KEY
+);
+
+(e.target as HTMLFormElement).reset();
+
+setName('');
+setEmail('');
+setMobile('');
+setLocation('');
+setDate('');
+setTime('');
+setService('');
+
 
   alert('Booking request sent!');
 };
@@ -106,7 +127,7 @@ export default function Booking() {
           />
           <input
             type="tel"
-            placeholder="Mobile (e.g., +353812345678)"
+            placeholder="Mobile"
             className="input-style"
             value={mobile}
             onChange={(e) => setMobile(e.target.value)}
@@ -156,10 +177,7 @@ export default function Booking() {
           <span> Service Fee</span>
           <span>€{serviceFee}</span>
         </div>
-        <div className="flex justify-between text-gray-700 font-medium">
-          <span> Travel Fee</span>
-          <span>€{travelFee}</span>
-        </div>
+        
         <div className="flex justify-between text-gray-700 font-medium">
           <span> Early/Late Fee</span>
           <span>€{earlyLateFee}</span>
