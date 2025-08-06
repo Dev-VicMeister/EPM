@@ -4,7 +4,8 @@ import { FaInstagram, FaTiktok } from 'react-icons/fa';
 
 
 export default function Booking() {
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [mobile, setMobile] = useState('');
   const [service, setService] = useState('');
@@ -50,7 +51,9 @@ export default function Booking() {
   }
 
   const bookingDetails = {
-    name,
+    firstName,
+    lastName,
+    name: `${firstName} ${lastName}`,
     email,
     mobile,
     service,
@@ -78,13 +81,19 @@ emailjs.send(
 
 (e.target as HTMLFormElement).reset();
 
-setName('');
+setFirstName('');
+setLastName('');
 setEmail('');
 setMobile('');
+setService('');
 setLocation('');
 setDate('');
 setTime('');
-setService('');
+setEarlyLateFee(0);
+setServiceFee(0);
+setTotal(0);
+setPaymentType('Deposit');
+
 
 
   alert('Booking request sent!');
@@ -112,12 +121,20 @@ setService('');
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <input
-            placeholder="Name"
+            placeholder="First Name"
             className="input-style"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
             required
           />
+          <input
+            placeholder="Last Name"
+            className="input-style"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            required
+          />
+
           <input
             placeholder="Email"
             className="input-style"
@@ -153,21 +170,38 @@ setService('');
             onChange={(e) => setLocation(e.target.value)}
             required
           />
-          <input
-            type="date"
-            className="input-style"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            required
-          />
-          <input
-            type="time"
-            className="input-style"
-            value={time}
-            onChange={(e) => handleTimeChange(e.target.value)}
-            required
-          />
+          
+  
         </div>
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  {/* Date */}
+  <div>
+    <label htmlFor="date" className="block text-sm text-gray-600 mb-1">Select Date</label>
+    <input
+  id="date"
+  type="date"
+  value={date}
+  onChange={(e) => setDate(e.target.value)}
+  className="input-style appearance-none"
+
+/>
+
+  </div>
+
+  {/* Time */}
+  <div>
+    <label htmlFor="time" className="block text-sm text-gray-600 mb-1">Select Time</label>
+    <input
+  id="time"
+  type="time"
+  value={time}
+  onChange={(e) => handleTimeChange(e.target.value)}
+  className="input-style appearance-none"
+/>
+  </div>
+</div>
+
 
         <div className="text-sm text-gray-700">
            Early (before 9 AM) or Late (after 5 PM) adds €15
