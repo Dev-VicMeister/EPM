@@ -134,7 +134,6 @@ setPaymentType('Deposit');
             onChange={(e) => setLastName(e.target.value)}
             required
           />
-
           <input
             placeholder="Email"
             className="input-style"
@@ -153,16 +152,19 @@ setPaymentType('Deposit');
             required
          />
 
-          <select
-            className="input-style"
-            value={service}
-            onChange={(e) => handleServiceChange(e.target.value)}
-            required
-          >
-            <option value=""> Select Service</option>
-            <option value="Soft Glam">Soft Glam (€50)</option>
-            <option value="Full Glam">Full Glam (€60)</option>
-          </select>
+ <select
+  className="w-full p-2 border border-yellow-500 bg-[#fef9f1] rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+  value={service}
+  onChange={(e) => handleServiceChange(e.target.value)}
+  required
+>
+  <option value="">Select Service</option>
+  <option value="Soft Glam">Soft Glam (€50)</option>
+  <option value="Full Glam">Full Glam (€60)</option>
+</select>
+
+
+
           <input
             placeholder=" Location"
             className="input-style"
