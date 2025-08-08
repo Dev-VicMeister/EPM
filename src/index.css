@@ -1,6 +1,21 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+body {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+}
+
+@layer base {
+  body {
+    @apply antialiased text-neutral-800;
+  }
+}
+
 
 @layer components {
   .input-style {
