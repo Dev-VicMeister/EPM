@@ -105,108 +105,124 @@ export default function Booking() {
   const allSlots = generateHalfHourSlots();
   const blocked = buildBlockedSet(bookedTimes);
 
-  // --- SUBMIT ---
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const form = e.target as HTMLFormElement;
-    if ((form.elements.namedItem("honeypot") as HTMLInputElement)?.value) return;
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  const form = e.target as HTMLFormElement;
 
-    if (!date || !time) {
-      alert("Please select date & time");
-      return;
-    }
+  // Honeypot (spam bot trap)
+  if ((form.elements.namedItem("honeypot") as HTMLInputElement)?.value) return;
 
-    // Conflict check
-    const [hour, minute] = time.split(":").map(Number);
-    const startMins = hour * 60 + minute;
-    const conflictTimes = [];
-    for (let offset = 0; offset <= 90; offset += 30) {
-      const totalMins = startMins + offset;
-      const h = Math.floor(totalMins / 60);
-      const m = totalMins % 60;
-      conflictTimes.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
-    }
+  if (!date || !time) {
+    alert("Please select date & time");
+    return;
+  }
 
-    const { data: clash } = await supabase
-      .from("bookings")
-      .select("time")
-      .eq("date", date)
-      .in("time", conflictTimes);
+  // Conflict check (1.5 hr overlap)
+  const [hour, minute] = time.split(":").map(Number);
+  const startMins = hour * 60 + minute;
+  const conflictTimes: string[] = [];
+  for (let offset = 0; offset <= 90; offset += 30) {
+    const totalMins = startMins + offset;
+    const h = Math.floor(totalMins / 60);
+    const m = totalMins % 60;
+    conflictTimes.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
+  }
 
-    if (clash && clash.length > 0) {
-      alert("That time overlaps an existing booking.");
-      return;
-    }
+  const { data: clash } = await supabase
+    .from("bookings")
+    .select("time")
+    .eq("date", date)
+    .in("time", conflictTimes);
 
-    // Save booking
-    const { error: insertErr } = await supabase.from("bookings").insert({
-      first_name: firstName,
-      last_name: lastName,
-      email,
-      mobile,
-      location,
-      service,
-      date,
-      time,
-      total,
-      created_at: new Date().toISOString(),
-    });
+  if (clash && clash.length > 0) {
+    alert("That time overlaps an existing booking.");
+    return;
+  }
 
-    if (insertErr) {
-      console.error(insertErr);
-      alert("Error saving booking.");
-      return;
-    }
+  // Build booking payload
+  const payload = {
+  first_name: firstName.trim(),
+  last_name: lastName.trim(),
+  email: email.trim(),
+  mobile: mobile.trim(),        // <-- use 'phone' to match your table
+  location: location.trim(),
+  service,
+  date,                        // 'YYYY-MM-DD'
+  time,                        // 'HH:MM' (stored as text in your table)
+  total: Number(total) || 0,
+  created_at: new Date().toISOString(),
+};
 
-    // EmailJS
-    const bookingDetails = {
-      firstName,
-      lastName,
-      email,
-      mobile,
-      service,
-      location,
-      date,
-      time,
-      earlyLateFee,
-      total,
-      paymentType,
-    };
+  // Insert into Supabase
+  const { data: inserted, error: insertErr } = await supabase
+    .from("bookings")
+    .insert(payload)
+    .select()
+    .single();
 
-    try {
-      await emailjs.send(
-        import.meta.env.VITE_EMAILJS_SERVICE_ID,
-        import.meta.env.VITE_EMAILJS_TEMPLATE_CUSTOMER,
-        bookingDetails,
-        import.meta.env.VITE_EMAILJS_PUBLIC_KEY
-      );
-      await emailjs.send(
-        import.meta.env.VITE_EMAILJS_SERVICE_ID,
-        import.meta.env.VITE_EMAILJS_TEMPLATE_EPM,
-        bookingDetails,
-        import.meta.env.VITE_EMAILJS_PUBLIC_KEY
-      );
-    } catch (err) {
-      console.error("EmailJS error:", err);
-    }
+  if (insertErr) {
+    console.error("Supabase insert error:", insertErr);
+    const msg =
+      insertErr.message?.includes("row-level security")
+        ? "Permission denied by database policy (RLS)."
+        : insertErr.details || insertErr.message || "Unknown error";
+    alert(`Error saving booking: ${msg}`);
+    return;
+  }
 
-    // Reset
-    form.reset();
-    setFirstName("");
-    setLastName("");
-    setEmail("");
-    setMobile("");
-    setLocation("");
-    setDate("");
-    setTime("");
-    setService("");
-    setEarlyLateFee(0);
-    setServiceFee(0);
-    setTotal(0);
-    setPaymentType("Deposit");
+  console.log("Inserted booking:", inserted);
 
-    alert("Booking request sent!");
+  // EmailJS details (include bookingId)
+  const bookingDetails = {
+    firstName,
+    lastName,
+    email,
+    mobile,
+    service,
+    location,
+    date,
+    time,
+    earlyLateFee,
+    total,
+    paymentType,
+    bookingId: inserted.id, // NEW: send booking ID in the email
   };
+
+  try {
+    await emailjs.send(
+      import.meta.env.VITE_EMAILJS_SERVICE_ID,
+      import.meta.env.VITE_EMAILJS_TEMPLATE_CUSTOMER,
+      bookingDetails,
+      import.meta.env.VITE_EMAILJS_PUBLIC_KEY
+    );
+    await emailjs.send(
+      import.meta.env.VITE_EMAILJS_SERVICE_ID,
+      import.meta.env.VITE_EMAILJS_TEMPLATE_EPM,
+      bookingDetails,
+      import.meta.env.VITE_EMAILJS_PUBLIC_KEY
+    );
+  } catch (err) {
+    console.error("EmailJS error:", err);
+  }
+
+  // Reset form state
+  form.reset();
+  setFirstName("");
+  setLastName("");
+  setEmail("");
+  setMobile("");
+  setLocation("");
+  setDate("");
+  setTime("");
+  setService("");
+  setEarlyLateFee(0);
+  setServiceFee(0);
+  setTotal(0);
+  setPaymentType("Deposit");
+
+  alert("Booking request sent!");
+};
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#f5f0e6] via-[#e6dac0] to-[#f9f7f2] flex flex-col items-center px-4 py-10">
