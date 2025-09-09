@@ -20,6 +20,8 @@ export default function Booking() {
   const [total, setTotal] = useState(0);
   const [paymentType, setPaymentType] = useState<"Deposit" | "Full">("Deposit");
   const [bookedTimes, setBookedTimes] = useState<string[]>([]);
+  const [quantity, setQuantity] = useState(1); // NEW: number of sessions
+
 
   // --- UTILS ---
   const updateTotal = (serviceFeeValue = serviceFee, earlyLate = earlyLateFee) => {
@@ -249,24 +251,53 @@ const handleSubmit = async (e: React.FormEvent) => {
           <input placeholder="Location" className="input-style" value={location} onChange={(e) => setLocation(e.target.value)} required />
         </div>
 
-        {/* Date & Time */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="date" className="block text-sm text-gray-600 mb-1">Select Date</label>
-            <input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="input-style bg-[#FEF9F1]" required />
-          </div>
-          <div>
-            <label htmlFor="time" className="block text-sm text-gray-600 mb-1">Select Time</label>
-            <select id="time" className="input-style bg-[#FEF9F1]" value={time} onChange={(e) => handleTimeChange(e.target.value)} required>
-              <option value="">Select Time</option>
-              {allSlots.map((slot) => (
-                <option key={slot} value={slot} disabled={blocked.has(slot)}>
-                  {slot} {blocked.has(slot) ? "(Booked)" : ""}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
+{/* Date, Time & Quantity */}
+<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+  <div>
+    <label htmlFor="date" className="block text-sm text-gray-600 mb-1">Select Date</label>
+    <input
+      id="date"
+      type="date"
+      value={date}
+      onChange={(e) => setDate(e.target.value)}
+      className="input-style bg-[#FEF9F1]"
+      required
+    />
+  </div>
+  <div>
+    <label htmlFor="time" className="block text-sm text-gray-600 mb-1">Select Time</label>
+    <select
+      id="time"
+      className="input-style bg-[#FEF9F1]"
+      value={time}
+      onChange={(e) => handleTimeChange(e.target.value)}
+      required
+    >
+      <option value="">Select Time</option>
+      {allSlots.map((slot) => (
+        <option key={slot} value={slot} disabled={blocked.has(slot)}>
+          {slot} {blocked.has(slot) ? "(Booked)" : ""}
+        </option>
+      ))}
+    </select>
+  </div>
+  <div>
+    <label htmlFor="qty" className="block text-sm text-gray-600 mb-1">Quantity (sessions)</label>
+    <select
+      id="qty"
+      className="input-style bg-[#FEF9F1]"
+      value={quantity}
+      onChange={(e) => setQuantity(Number(e.target.value))}
+    >
+      {Array.from({ length: 6 }).map((_, i) => (
+        <option key={i + 1} value={i + 1}>
+          {i + 1}
+        </option>
+      ))}
+    </select>
+  </div>
+</div>
+
 
         {/* Fee Summary */}
         <div className="flex justify-between text-gray-700 font-medium">
